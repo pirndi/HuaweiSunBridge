@@ -13,6 +13,11 @@
 #include <Arduino.h>
 #include <ETH.h>
 #include <WiFi.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <fcntl.h>
+#include <errno.h>
 
 // --- Konfiguration ---
 #define WIFI_SSID         "huawei SSID hier eintragen"
@@ -216,7 +221,7 @@ void setup() {
 
   // --- Ethernet Initialisierung ---
   log_msg("Initialisiere Ethernet (LAN8720)...");
-  ETH.begin(ETH_POWER_PIN, -1, ETH_PHY_LAN8720, ETH_CLK_MODE);
+  ETH.begin(1, ETH_POWER_PIN, 23, 18, ETH_PHY_LAN8720, ETH_CLK_MODE);
   delay(1000);
 
   Serial.print("Ethernet IP: ");
