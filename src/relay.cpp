@@ -1,6 +1,7 @@
-#include "../include/relay.h"
-#include "../include/net.h"
-#include "../include/config.h"
+#include "logger.h"
+#include "relay.h"
+#include "net.h"
+#include "config.h"
 
 #include <WiFi.h>
 
@@ -24,7 +25,7 @@ static void closeSession(Session &s, const char *reason) {
     s.client.stop();
     s.upstream.stop();
     s.inUse = false;
-    Serial.printf("[RLY ] Sitzung beendet (%s)\n", reason);
+    logPrintf("[RLY ] Sitzung beendet (%s)\n", reason);
 }
 
 // Kopiert alles Verfuegbare von 'from' nach 'to'. Rueckgabe: Bytes.
@@ -62,12 +63,12 @@ static bool openUpstream(Session &s) {
         gRelay.lastError = String(F("Wechselrichter ")) + target.toString() +
                            F(" nicht erreichbar");
         gRelay.upstreamFailures++;
-        Serial.printf("[RLY ] %s\n", gRelay.lastError.c_str());
+        logPrintf("[RLY ] %s\n", gRelay.lastError.c_str());
         return false;
     }
 
     s.upstream.setNoDelay(true);
-    Serial.printf("[RLY ] Upstream offen: %s:%u\n",
+    logPrintf("[RLY ] Upstream offen: %s:%u\n",
                   target.toString().c_str(), gConfig.targetPort);
     return true;
 }
@@ -89,7 +90,7 @@ void relayBegin() {
     gRelay.listenPort = gConfig.listenPort;
     gRelay.lastError  = "";
 
-    Serial.printf("[RLY ] Lausche auf Port %u\n", gConfig.listenPort);
+    logPrintf("[RLY ] Lausche auf Port %u\n", gConfig.listenPort);
 }
 
 void relayRestart() {
@@ -121,7 +122,7 @@ void relayLoop() {
             if (openUpstream(*slot)) {
                 slot->inUse = true;
                 gRelay.sessionsTotal++;
-                Serial.printf("[RLY ] Client %s verbunden\n",
+                logPrintf("[RLY ] Client %s verbunden\n",
                               slot->client.remoteIP().toString().c_str());
             } else {
                 slot->client.stop();

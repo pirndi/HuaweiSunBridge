@@ -1,4 +1,4 @@
-#include "../include/config.h"
+#include "config.h"
 #include <Preferences.h>
 #include <WiFi.h>
 

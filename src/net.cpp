@@ -1,5 +1,6 @@
-#include "../include/net.h"
-#include "../include/config.h"
+#include "logger.h"
+#include "net.h"
+#include "config.h"
 
 #include <ETH.h>
 #include <WiFi.h>
@@ -23,7 +24,7 @@ static void onNetEvent(WiFiEvent_t event) {
             break;
 
         case ARDUINO_EVENT_ETH_CONNECTED:
-            Serial.println(F("[ETH ] Link erkannt"));
+            logPrint(F("[ETH ] Link erkannt"));
             break;
 
         case ARDUINO_EVENT_ETH_GOT_IP:
@@ -33,7 +34,7 @@ static void onNetEvent(WiFiEvent_t event) {
             gNet.ethSubnet     = ETH.subnetMask();
             gNet.ethLinkSpeed  = ETH.linkSpeed();
             gNet.ethFullDuplex = ETH.fullDuplex();
-            Serial.printf("[ETH ] IP %s  (%u Mbit/s, %s)\n",
+            logPrintf("[ETH ] IP %s  (%u Mbit/s, %s)\n",
                           gNet.ethIp.toString().c_str(),
                           gNet.ethLinkSpeed,
                           gNet.ethFullDuplex ? "Full Duplex" : "Half Duplex");
@@ -43,7 +44,7 @@ static void onNetEvent(WiFiEvent_t event) {
         case ARDUINO_EVENT_ETH_STOP:
             gNet.ethUp = false;
             gNet.ethIp = IPAddress((uint32_t)0);
-            Serial.println(F("[ETH ] Link verloren"));
+            logPrint(F("[ETH ] Link verloren"));
             break;
 
         case ARDUINO_EVENT_WIFI_STA_GOT_IP:
@@ -52,7 +53,7 @@ static void onNetEvent(WiFiEvent_t event) {
             gNet.wifiIp      = WiFi.localIP();
             gNet.wifiGateway = WiFi.gatewayIP();
             s_wifiBackoffMs  = 5000;
-            Serial.printf("[WLAN] Verbunden mit '%s', IP %s, Gateway %s\n",
+            logPrintf("[WLAN] Verbunden mit '%s', IP %s, Gateway %s\n",
                           gNet.wifiSsid.c_str(),
                           gNet.wifiIp.toString().c_str(),
                           gNet.wifiGateway.toString().c_str());
@@ -61,7 +62,7 @@ static void onNetEvent(WiFiEvent_t event) {
         case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
             if (gNet.wifiUp) {
                 gNet.wifiReconnects++;
-                Serial.println(F("[WLAN] Verbindung zum WR-AP verloren"));
+                logPrint(F("[WLAN] Verbindung zum WR-AP verloren"));
             }
             gNet.wifiUp = false;
             gNet.wifiIp = IPAddress((uint32_t)0);
@@ -102,14 +103,14 @@ static void startSetupAp() {
     WiFi.softAP(ssid.c_str(), SB_SETUP_AP_PASS);
     gNet.setupApActive = true;
     gNet.setupApSsid   = ssid;
-    Serial.printf("[WLAN] Einrichtungs-AP '%s' aktiv, Passwort '%s', IP %s\n",
+    logPrintf("[WLAN] Einrichtungs-AP '%s' aktiv, Passwort '%s', IP %s\n",
                   ssid.c_str(), SB_SETUP_AP_PASS,
                   WiFi.softAPIP().toString().c_str());
 }
 
 static void connectWrAp() {
     if (gConfig.wrSsid.length() == 0) return;
-    Serial.printf("[WLAN] Verbinde mit WR-AP '%s' ...\n", gConfig.wrSsid.c_str());
+    logPrintf("[WLAN] Verbinde mit WR-AP '%s' ...\n", gConfig.wrSsid.c_str());
     WiFi.begin(gConfig.wrSsid.c_str(),
                gConfig.wrPassword.length() ? gConfig.wrPassword.c_str() : nullptr);
     s_lastWifiAttempt = millis();
@@ -130,17 +131,17 @@ void netBegin() {
 
     s_ethStarted = ethStart();
     if (!s_ethStarted) {
-        Serial.println(F("[ETH ] FEHLER: ETH.begin() fehlgeschlagen"));
+        logPrint(F("[ETH ] FEHLER: ETH.begin() fehlgeschlagen"));
     } else if (!gConfig.ethDhcp && (uint32_t)gConfig.ethIp != 0) {
         // Statische Adresse erst nach begin() setzen
         ETH.config(gConfig.ethIp, gConfig.ethGateway, gConfig.ethSubnet, gConfig.ethDns);
-        Serial.printf("[ETH ] Statische Adresse %s\n", gConfig.ethIp.toString().c_str());
+        logPrintf("[ETH ] Statische Adresse %s\n", gConfig.ethIp.toString().c_str());
     }
 
     if (gConfig.isProvisioned()) {
         connectWrAp();
     } else {
-        Serial.println(F("[CFG ] Keine WR-AP-Zugangsdaten hinterlegt"));
+        logPrint(F("[CFG ] Keine WR-AP-Zugangsdaten hinterlegt"));
     }
 
     // Der Einrichtungs-AP laeuft immer mit: bei Fehlkonfiguration ist das

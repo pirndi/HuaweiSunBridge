@@ -15,10 +15,11 @@
 #include <Arduino.h>
 #include <ESPmDNS.h>
 
-#include "../include/config.h"
-#include "../include/net.h"
-#include "../include/relay.h"
-#include "../include/web.h"
+#include "config.h"
+#include "net.h"
+#include "relay.h"
+#include "web.h"
+#include "logger.h"
 
 #ifndef FW_VERSION
 #define FW_VERSION "0.0.0"
